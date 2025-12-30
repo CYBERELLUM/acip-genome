@@ -250,7 +250,7 @@ async function queryGemini(messages: any[], apiKey: string, systemPrompt: string
   }
 }
 
-async function queryMultiAIGateway(messages: any[], apiKey: string, systemPrompt: string): Promise<AIResponse> {
+async function queryPrimaryGateway(messages: any[], apiKey: string, systemPrompt: string): Promise<AIResponse> {
   try {
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -266,19 +266,19 @@ async function queryMultiAIGateway(messages: any[], apiKey: string, systemPrompt
 
     if (!response.ok) {
       const error = await response.text();
-      console.error("Lovable AI error:", error);
-      return { provider: "Lovable AI", content: "", success: false, error };
+      console.error("Primary AI error:", error);
+      return { provider: "Primary", content: "", success: false, error };
     }
 
     const data = await response.json();
     return {
-      provider: "Lovable AI",
+      provider: "Primary",
       content: data.choices?.[0]?.message?.content || "",
       success: true,
     };
   } catch (error) {
-    console.error("Lovable AI exception:", error);
-    return { provider: "Lovable AI", content: "", success: false, error: String(error) };
+    console.error("Primary AI exception:", error);
+    return { provider: "Primary", content: "", success: false, error: String(error) };
   }
 }
 
@@ -332,7 +332,7 @@ serve(async (req) => {
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
     if (!MULTI_AI_KEY) {
-      throw new Error("Lovable AI key is not configured");
+      throw new Error("AI Gateway key is not configured");
     }
 
     console.log("[Research] Processing query with messages:", messages.length, "mode:", researchMode);
@@ -382,9 +382,9 @@ serve(async (req) => {
     const queries: Promise<AIResponse>[] = [];
     const activeProviders: string[] = [];
 
-    // Always include Lovable AI as the primary provider
-    queries.push(queryMultiAIGateway(enhancedMessages, MULTI_AI_KEY, systemPrompt));
-    activeProviders.push("Lovable AI");
+    // Always include primary AI as the main provider
+    queries.push(queryPrimaryGateway(enhancedMessages, MULTI_AI_KEY, systemPrompt));
+    activeProviders.push("Primary");
 
     if (openaiConfig?.api_key_encrypted) {
       queries.push(queryOpenAI(enhancedMessages, openaiConfig.api_key_encrypted, systemPrompt));
