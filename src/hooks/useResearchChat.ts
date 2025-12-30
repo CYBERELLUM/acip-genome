@@ -5,6 +5,13 @@ import { useAuth } from "@/hooks/useAuth";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/research-assistant`;
 
+export type ResearchMode =
+  | "general"
+  | "literature"
+  | "methodology"
+  | "dataAnalysis"
+  | "crisprDesign";
+
 interface ResearchResponse {
   content: string;
   sources: string[];
@@ -19,11 +26,18 @@ export const useResearchChat = () => {
     isLoading: historyLoading, 
     saveMessage, 
     addMessage, 
-    setMessages 
+    setMessages,
+    clearHistory,
   } = useChatHistory();
   const [isLoading, setIsLoading] = useState(false);
+  const [researchMode, setResearchMode] = useState<ResearchMode>("general");
 
-  const sendMessage = useCallback(async (input: string) => {
+  const clearMessages = () => {
+    clearHistory();
+  };
+
+  const sendMessage = useCallback(async (input: string, mode?: ResearchMode) => {
+    const currentMode = mode || researchMode;
     if (!input.trim() || isLoading) return;
 
     const userMessageId = `user-${Date.now()}`;
@@ -58,6 +72,7 @@ export const useResearchChat = () => {
         body: JSON.stringify({ 
           messages: apiMessages,
           userId: user?.id,
+          mode: currentMode,
         }),
       });
 
@@ -100,7 +115,14 @@ export const useResearchChat = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [messages, isLoading, user, addMessage, saveMessage, setMessages]);
+  }, [messages, isLoading, user, addMessage, saveMessage, setMessages, researchMode]);
 
-  return { messages, isLoading: isLoading || historyLoading, sendMessage };
+  return { 
+    messages, 
+    isLoading: isLoading || historyLoading, 
+    sendMessage, 
+    clearMessages, 
+    researchMode, 
+    setResearchMode 
+  };
 };

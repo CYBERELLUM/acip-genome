@@ -6,24 +6,40 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const SYSTEM_PROMPT = `You are a highly specialized Research Assistant for genomics scientists, physicists, and experts in genomic engineering. You are an AI-powered concierge that helps researchers with:
+type ResearchMode =
+  | "general"
+  | "literature"
+  | "methodology"
+  | "dataAnalysis"
+  | "crisprDesign";
 
-1. **Literature Review**: Synthesizing findings from scientific papers, identifying key discoveries, and tracking research trends in genomics, molecular biology, and related fields.
+function getSystemPrompt(mode: ResearchMode): string {
+  const base = `You are a highly specialized Research Assistant for genomics scientists, physicists, and experts in genomic engineering.`;
 
-2. **Technical Guidance**: Explaining complex genomic techniques like CRISPR-Cas9, next-generation sequencing, gene expression analysis, and bioinformatics pipelines.
+  const modePrompts: Record<ResearchMode, string> = {
+    general: `${base}
 
-3. **Research Synthesis**: Combining information from multiple sources to provide comprehensive answers to research questions.
+Provide comprehensive research synthesis across genomics topics. Be precise and scientifically accurate, cite methodologies, and acknowledge limitations. Format your responses with markdown headings, bullet points, and code blocks where appropriate.`,
 
-4. **Methodology Recommendations**: Suggesting appropriate experimental approaches, analysis methods, and tools for genomics research.
+    literature: `${base}
 
-5. **Data Interpretation**: Helping interpret genomic data, understand statistical significance, and identify patterns in research findings.
+Focus on literature review: summarize key papers, identify research trends, highlight consensus vs. controversy, and suggest seminal readings. Structure responses with paper references when possible. Use markdown formatting.`,
 
-When responding:
-- Be precise and scientifically accurate
-- Cite relevant concepts and methodologies
-- Provide actionable insights for research applications
-- Use appropriate scientific terminology
-- Acknowledge limitations and suggest further reading when appropriate`;
+    methodology: `${base}
+
+Focus on experimental methodology: provide detailed protocols, equipment recommendations, controls to include, common pitfalls, and troubleshooting tips. Be step-by-step and practical. Use markdown lists and code blocks for commands.`,
+
+    dataAnalysis: `${base}
+
+Focus on data analysis and interpretation: explain statistical approaches, recommend software/pipelines, help interpret results, discuss significance thresholds, and suggest visualization strategies. Use markdown for clarity.`,
+
+    crisprDesign: `${base}
+
+Focus on CRISPR/Cas system design: guide RNA design principles, off-target analysis, delivery methods, editing efficiency optimization, and validation strategies. Reference recent improvements in base/prime editing when relevant. Use markdown formatting.`,
+  };
+
+  return modePrompts[mode] || modePrompts.general;
+}
 
 interface AIResponse {
   provider: string;
@@ -32,7 +48,7 @@ interface AIResponse {
   error?: string;
 }
 
-async function queryOpenAI(messages: any[], apiKey: string): Promise<AIResponse> {
+async function queryOpenAI(messages: any[], apiKey: string, systemPrompt: string): Promise<AIResponse> {
   try {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -42,7 +58,7 @@ async function queryOpenAI(messages: any[], apiKey: string): Promise<AIResponse>
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
-        messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
+        messages: [{ role: "system", content: systemPrompt }, ...messages],
         max_tokens: 1500,
       }),
     });
@@ -65,7 +81,7 @@ async function queryOpenAI(messages: any[], apiKey: string): Promise<AIResponse>
   }
 }
 
-async function queryGemini(messages: any[], apiKey: string): Promise<AIResponse> {
+async function queryGemini(messages: any[], apiKey: string, systemPrompt: string): Promise<AIResponse> {
   try {
     // Convert messages to Gemini format
     const contents = messages.map((m: any) => ({
@@ -73,17 +89,15 @@ async function queryGemini(messages: any[], apiKey: string): Promise<AIResponse>
       parts: [{ text: m.content }],
     }));
 
-    // Add system instruction as first user message if not present
-    if (contents.length === 0 || contents[0].parts[0].text !== SYSTEM_PROMPT) {
-      contents.unshift({
-        role: "user",
-        parts: [{ text: SYSTEM_PROMPT + "\n\nPlease acknowledge you understand your role." }],
-      });
-      contents.splice(1, 0, {
-        role: "model",
-        parts: [{ text: "I understand. I'm ready to assist with genomics research questions." }],
-      });
-    }
+    // Add system instruction as first user message
+    contents.unshift({
+      role: "user",
+      parts: [{ text: systemPrompt + "\n\nPlease acknowledge you understand your role." }],
+    });
+    contents.splice(1, 0, {
+      role: "model",
+      parts: [{ text: "I understand. I'm ready to assist with genomics research questions." }],
+    });
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
@@ -114,7 +128,7 @@ async function queryGemini(messages: any[], apiKey: string): Promise<AIResponse>
   }
 }
 
-async function queryLovableAI(messages: any[], apiKey: string): Promise<AIResponse> {
+async function queryLovableAI(messages: any[], apiKey: string, systemPrompt: string): Promise<AIResponse> {
   try {
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -124,7 +138,7 @@ async function queryLovableAI(messages: any[], apiKey: string): Promise<AIRespon
       },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
-        messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
+        messages: [{ role: "system", content: systemPrompt }, ...messages],
       }),
     });
 
@@ -180,7 +194,10 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, userId } = await req.json();
+    const { messages, userId, mode } = await req.json();
+    const researchMode: ResearchMode = mode || "general";
+    const systemPrompt = getSystemPrompt(researchMode);
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -189,7 +206,7 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    console.log("Processing research query with messages:", messages.length);
+    console.log("Processing research query with messages:", messages.length, "mode:", researchMode);
 
     // Try to get user's configured API keys if userId provided
     let userApiKeys: { provider: string; api_key_encrypted: string; is_enabled: boolean }[] = [];
@@ -220,17 +237,17 @@ serve(async (req) => {
     const activeProviders: string[] = [];
 
     // Always include Lovable AI as the primary provider
-    queries.push(queryLovableAI(messages, LOVABLE_API_KEY));
+    queries.push(queryLovableAI(messages, LOVABLE_API_KEY, systemPrompt));
     activeProviders.push("Lovable AI");
 
     // Add user-configured providers
     if (openaiConfig?.api_key_encrypted) {
-      queries.push(queryOpenAI(messages, openaiConfig.api_key_encrypted));
+      queries.push(queryOpenAI(messages, openaiConfig.api_key_encrypted, systemPrompt));
       activeProviders.push("OpenAI");
     }
 
     if (geminiConfig?.api_key_encrypted) {
-      queries.push(queryGemini(messages, geminiConfig.api_key_encrypted));
+      queries.push(queryGemini(messages, geminiConfig.api_key_encrypted, systemPrompt));
       activeProviders.push("Gemini");
     }
 
