@@ -3,6 +3,7 @@ import { Navigation } from "@/components/layout/Navigation";
 import { ParallaxSection } from "@/components/layout/ParallaxSection";
 import { DNAMatrix } from "@/components/layout/DNAMatrix";
 import Footer from "@/components/layout/Footer";
+import PageBreadcrumb from "@/components/layout/PageBreadcrumb";
 import { 
   Newspaper, 
   Calendar, 
@@ -139,6 +140,8 @@ const Blogs = () => {
 
       <ParallaxSection className="pt-24 pb-16 flex-1">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <PageBreadcrumb currentPage="Blogs" />
+          
           {/* Header */}
           <div className="text-center mb-12 animate-fade-in">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent/10 border border-accent/30 rounded-full mb-6">

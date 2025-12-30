@@ -21,6 +21,7 @@ import Privacy from "./pages/Privacy";
 import Auth from "./pages/Auth";
 import Security from "./pages/Security";
 import APISettings from "./pages/APISettings";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/security" element={<Security />} />
             <Route path="/api-settings" element={<APISettings />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="/library" element={<GenomicsLibrary />} />
             <Route path="/notebook" element={<LabNotebook />} />
             <Route path="/sequences" element={<Sequences />} />
