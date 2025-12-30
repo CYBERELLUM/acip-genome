@@ -5,6 +5,13 @@ import { useAuth } from "@/hooks/useAuth";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/research-assistant`;
 
+interface ResearchResponse {
+  content: string;
+  sources: string[];
+  providersQueried: string[];
+  error?: string;
+}
+
 export const useResearchChat = () => {
   const { user } = useAuth();
   const { 
@@ -12,7 +19,6 @@ export const useResearchChat = () => {
     isLoading: historyLoading, 
     saveMessage, 
     addMessage, 
-    updateMessage,
     setMessages 
   } = useChatHistory();
   const [isLoading, setIsLoading] = useState(false);
@@ -42,9 +48,6 @@ export const useResearchChat = () => {
       content,
     }));
 
-    let assistantContent = "";
-    const streamMessageId = `stream-${Date.now()}`;
-
     try {
       const response = await fetch(CHAT_URL, {
         method: "POST",
@@ -52,7 +55,10 @@ export const useResearchChat = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: apiMessages }),
+        body: JSON.stringify({ 
+          messages: apiMessages,
+          userId: user?.id,
+        }),
       });
 
       if (!response.ok) {
@@ -60,96 +66,30 @@ export const useResearchChat = () => {
         throw new Error(errorData.error || "Failed to get response");
       }
 
-      if (!response.body) {
-        throw new Error("No response body");
+      const data: ResearchResponse = await response.json();
+
+      if (data.error) {
+        throw new Error(data.error);
       }
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let textBuffer = "";
-
-      const updateAssistantContent = (content: string) => {
-        assistantContent = content;
-        setMessages((prev) => {
-          const last = prev[prev.length - 1];
-          if (last?.role === "assistant" && last.id === streamMessageId) {
-            return prev.map((m) =>
-              m.id === streamMessageId
-                ? { ...m, content, timestamp: new Date() }
-                : m
-            );
-          }
-          return [
-            ...prev,
-            {
-              id: streamMessageId,
-              role: "assistant" as const,
-              content,
-              timestamp: new Date(),
-              sources: ["Lovable AI", "Gemini 2.5 Flash"],
-            },
-          ];
-        });
+      const assistantMessage: ChatMessage = {
+        id: `assistant-${Date.now()}`,
+        role: "assistant",
+        content: data.content,
+        timestamp: new Date(),
+        sources: data.sources,
       };
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+      setMessages((prev) => [...prev, assistantMessage]);
 
-        textBuffer += decoder.decode(value, { stream: true });
-
-        let newlineIndex: number;
-        while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
-          let line = textBuffer.slice(0, newlineIndex);
-          textBuffer = textBuffer.slice(newlineIndex + 1);
-
-          if (line.endsWith("\r")) line = line.slice(0, -1);
-          if (line.startsWith(":") || line.trim() === "") continue;
-          if (!line.startsWith("data: ")) continue;
-
-          const jsonStr = line.slice(6).trim();
-          if (jsonStr === "[DONE]") break;
-
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-            if (content) {
-              assistantContent += content;
-              updateAssistantContent(assistantContent);
-            }
-          } catch {
-            // Incomplete JSON, put back and wait for more data
-            textBuffer = line + "\n" + textBuffer;
-            break;
-          }
-        }
-      }
-
-      // Final flush
-      if (textBuffer.trim()) {
-        for (let raw of textBuffer.split("\n")) {
-          if (!raw) continue;
-          if (raw.endsWith("\r")) raw = raw.slice(0, -1);
-          if (raw.startsWith(":") || raw.trim() === "") continue;
-          if (!raw.startsWith("data: ")) continue;
-          const jsonStr = raw.slice(6).trim();
-          if (jsonStr === "[DONE]") continue;
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-            if (content) {
-              assistantContent += content;
-              updateAssistantContent(assistantContent);
-            }
-          } catch {
-            /* ignore partial leftovers */
-          }
-        }
+      // Show which providers were queried
+      if (data.providersQueried.length > 1) {
+        toast.success(`Research synthesized from ${data.sources.length} AI providers`);
       }
 
       // Save assistant response to database if logged in
-      if (user && assistantContent) {
-        saveMessage("assistant", assistantContent, ["Lovable AI", "Gemini 2.5 Flash"]);
+      if (user && data.content) {
+        saveMessage("assistant", data.content, data.sources);
       }
     } catch (error) {
       console.error("Chat error:", error);
