@@ -216,7 +216,7 @@ const Security = () => {
       
       <main className="pt-20 pb-12 px-4 max-w-6xl mx-auto flex-1 w-full">
         <button
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/dashboard")}
           className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
