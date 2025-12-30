@@ -261,7 +261,13 @@ export const AIProviderConfig = () => {
 
         {expandedSection === "providers" && (
           <div className="mt-6 space-y-4">
-            {providers.map((provider) => (
+            {providers.map((provider) => {
+              // Determine connection status based on whether an API key is configured
+              const hasApiKey = !!formValues[`${provider.id}-api_key`];
+              const isLovable = provider.id === "lovable";
+              const status = isLovable || hasApiKey ? "connected" : "disconnected";
+              
+              return (
               <div key={provider.id} className="p-4 bg-secondary/50 rounded-lg border border-border">
                 <div className="flex items-center justify-between mb-3">
                   <div>
@@ -270,12 +276,12 @@ export const AIProviderConfig = () => {
                   </div>
                   <span
                     className={`px-2 py-1 text-xs rounded font-mono ${
-                      provider.status === "connected"
+                      status === "connected"
                         ? "bg-primary/20 text-primary"
                         : "bg-muted text-muted-foreground"
                     }`}
                   >
-                    {provider.status}
+                    {status}
                   </span>
                 </div>
                 <div className="space-y-3">
@@ -310,7 +316,8 @@ export const AIProviderConfig = () => {
                   ))}
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
