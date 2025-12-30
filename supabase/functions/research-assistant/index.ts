@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -22,9 +23,156 @@ When responding:
 - Cite relevant concepts and methodologies
 - Provide actionable insights for research applications
 - Use appropriate scientific terminology
-- Acknowledge limitations and suggest further reading when appropriate
+- Acknowledge limitations and suggest further reading when appropriate`;
 
-You have been queried through multiple AI providers including Lovable AI, OpenAI (GPT-5), and Google Gemini to provide the most comprehensive research synthesis possible.`;
+interface AIResponse {
+  provider: string;
+  content: string;
+  success: boolean;
+  error?: string;
+}
+
+async function queryOpenAI(messages: any[], apiKey: string): Promise<AIResponse> {
+  try {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
+        max_tokens: 1500,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      console.error("OpenAI error:", error);
+      return { provider: "OpenAI", content: "", success: false, error };
+    }
+
+    const data = await response.json();
+    return {
+      provider: "OpenAI",
+      content: data.choices?.[0]?.message?.content || "",
+      success: true,
+    };
+  } catch (error) {
+    console.error("OpenAI exception:", error);
+    return { provider: "OpenAI", content: "", success: false, error: String(error) };
+  }
+}
+
+async function queryGemini(messages: any[], apiKey: string): Promise<AIResponse> {
+  try {
+    // Convert messages to Gemini format
+    const contents = messages.map((m: any) => ({
+      role: m.role === "assistant" ? "model" : "user",
+      parts: [{ text: m.content }],
+    }));
+
+    // Add system instruction as first user message if not present
+    if (contents.length === 0 || contents[0].parts[0].text !== SYSTEM_PROMPT) {
+      contents.unshift({
+        role: "user",
+        parts: [{ text: SYSTEM_PROMPT + "\n\nPlease acknowledge you understand your role." }],
+      });
+      contents.splice(1, 0, {
+        role: "model",
+        parts: [{ text: "I understand. I'm ready to assist with genomics research questions." }],
+      });
+    }
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents,
+          generationConfig: {
+            maxOutputTokens: 1500,
+          },
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.text();
+      console.error("Gemini error:", error);
+      return { provider: "Gemini", content: "", success: false, error };
+    }
+
+    const data = await response.json();
+    const content = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    return { provider: "Gemini", content, success: true };
+  } catch (error) {
+    console.error("Gemini exception:", error);
+    return { provider: "Gemini", content: "", success: false, error: String(error) };
+  }
+}
+
+async function queryLovableAI(messages: any[], apiKey: string): Promise<AIResponse> {
+  try {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      console.error("Lovable AI error:", error);
+      return { provider: "Lovable AI", content: "", success: false, error };
+    }
+
+    const data = await response.json();
+    return {
+      provider: "Lovable AI",
+      content: data.choices?.[0]?.message?.content || "",
+      success: true,
+    };
+  } catch (error) {
+    console.error("Lovable AI exception:", error);
+    return { provider: "Lovable AI", content: "", success: false, error: String(error) };
+  }
+}
+
+function synthesizeResponses(responses: AIResponse[], query: string): string {
+  const successfulResponses = responses.filter(r => r.success && r.content);
+  
+  if (successfulResponses.length === 0) {
+    return "I apologize, but I was unable to process your query at this time. Please try again later.";
+  }
+
+  if (successfulResponses.length === 1) {
+    return successfulResponses[0].content;
+  }
+
+  // Multiple responses - create a synthesis
+  const synthesis = `## Multi-AI Research Synthesis
+
+Based on analysis from ${successfulResponses.map(r => r.provider).join(", ")}:
+
+${successfulResponses.map((r, i) => {
+  // Extract key points from each response (first ~500 chars for summary)
+  const summary = r.content.length > 800 ? r.content.slice(0, 800) + "..." : r.content;
+  return `### ${r.provider} Analysis:\n${summary}`;
+}).join("\n\n")}
+
+---
+*Synthesized from ${successfulResponses.length} AI sources for comprehensive research coverage.*`;
+
+  return synthesis;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -32,68 +180,95 @@ serve(async (req) => {
   }
 
   try {
-    const { messages } = await req.json();
+    const { messages, userId } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
     console.log("Processing research query with messages:", messages.length);
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          ...messages,
-        ],
-        stream: true,
-      }),
-    });
-
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limits exceeded. Please try again in a moment." }), 
-          {
-            status: 429,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
-      }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "AI usage limit reached. Please add credits to continue." }), 
-          {
-            status: 402,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
-      }
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
-      return new Response(
-        JSON.stringify({ error: "AI gateway error" }), 
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+    // Try to get user's configured API keys if userId provided
+    let userApiKeys: { provider: string; api_key_encrypted: string; is_enabled: boolean }[] = [];
+    
+    if (userId && SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
+      try {
+        const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+        const { data } = await supabase
+          .from("api_configurations")
+          .select("provider, api_key_encrypted, is_enabled")
+          .eq("user_id", userId)
+          .eq("is_enabled", true);
+        
+        if (data) {
+          userApiKeys = data;
         }
-      );
+      } catch (e) {
+        console.error("Error fetching user API keys:", e);
+      }
     }
 
-    return new Response(response.body, {
-      headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+    // Collect enabled providers
+    const openaiConfig = userApiKeys.find(k => k.provider === "openai");
+    const geminiConfig = userApiKeys.find(k => k.provider === "gemini");
+    
+    // Query all available providers in parallel
+    const queries: Promise<AIResponse>[] = [];
+    const activeProviders: string[] = [];
+
+    // Always include Lovable AI as the primary provider
+    queries.push(queryLovableAI(messages, LOVABLE_API_KEY));
+    activeProviders.push("Lovable AI");
+
+    // Add user-configured providers
+    if (openaiConfig?.api_key_encrypted) {
+      queries.push(queryOpenAI(messages, openaiConfig.api_key_encrypted));
+      activeProviders.push("OpenAI");
+    }
+
+    if (geminiConfig?.api_key_encrypted) {
+      queries.push(queryGemini(messages, geminiConfig.api_key_encrypted));
+      activeProviders.push("Gemini");
+    }
+
+    console.log("Querying providers:", activeProviders);
+
+    // Wait for all queries with a timeout
+    const results = await Promise.allSettled(
+      queries.map(q => Promise.race([q, new Promise<AIResponse>((_, reject) => 
+        setTimeout(() => reject(new Error("Timeout")), 30000)
+      )]))
+    );
+
+    const responses: AIResponse[] = results.map((r, i) => {
+      if (r.status === "fulfilled") {
+        return r.value;
+      }
+      return { provider: activeProviders[i], content: "", success: false, error: "Timeout or error" };
     });
+
+    const lastUserMessage = messages[messages.length - 1]?.content || "";
+    const synthesizedContent = synthesizeResponses(responses, lastUserMessage);
+    const successfulProviders = responses.filter(r => r.success).map(r => r.provider);
+
+    // Return as a non-streaming response with metadata
+    return new Response(
+      JSON.stringify({
+        content: synthesizedContent,
+        sources: successfulProviders,
+        providersQueried: activeProviders,
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
   } catch (error) {
     console.error("Research assistant error:", error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }), 
+      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
