@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, FlaskConical, BookOpen, Database, Search, Dna } from "lucide-react";
+import { Menu, X, FlaskConical, BookOpen, Database, Search, Dna, Box } from "lucide-react";
 import { UserMenu } from "@/components/auth/UserMenu";
 import cyberellumLogo from "@/assets/cyberellum-logo.png";
 
@@ -9,6 +9,7 @@ const navItems = [
   { path: "/library", label: "Genomics Library", icon: BookOpen },
   { path: "/notebook", label: "Lab Notebook", icon: FlaskConical },
   { path: "/sequences", label: "Sequences", icon: Dna },
+  { path: "/visualizations", label: "3D Viewer", icon: Box },
   { path: "/data-vault", label: "Data Vault", icon: Database },
 ];
 
