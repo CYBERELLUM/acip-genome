@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Navigation } from "@/components/layout/Navigation";
 import { DNAMatrix } from "@/components/layout/DNAMatrix";
 import Footer from "@/components/layout/Footer";
+import PageBreadcrumb from "@/components/layout/PageBreadcrumb";
 import { AIProviderConfig } from "@/components/research/AIProviderConfig";
 import { useAuth } from "@/hooks/useAuth";
 import { Lock, Eye, EyeOff, Shield, ArrowLeft, Crown } from "lucide-react";
@@ -82,14 +83,7 @@ const APISettings = () => {
 
       <main className="flex-1 pt-24 pb-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Back button */}
-          <Link
-            to="/dashboard"
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Research
-          </Link>
+          <PageBreadcrumb currentPage="API Settings" />
 
           <div className="text-center mb-8">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/30 rounded-full mb-4">

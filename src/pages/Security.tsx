@@ -21,6 +21,7 @@ import { MFASetup } from "@/components/auth/MFASetup";
 import { toast } from "sonner";
 import { Navigation } from "@/components/layout/Navigation";
 import Footer from "@/components/layout/Footer";
+import PageBreadcrumb from "@/components/layout/PageBreadcrumb";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -215,13 +216,7 @@ const Security = () => {
       <Navigation />
       
       <main className="pt-20 pb-12 px-4 max-w-6xl mx-auto flex-1 w-full">
-        <button
-          onClick={() => navigate("/dashboard")}
-          className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Dashboard
-        </button>
+        <PageBreadcrumb currentPage="Security" />
 
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">Security Settings</h1>
