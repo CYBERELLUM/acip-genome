@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.federated-query]
 verify_jwt = false
+
+[functions.federated-seed]
+verify_jwt = false
