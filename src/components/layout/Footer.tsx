@@ -14,16 +14,16 @@ const Footer = () => {
             <Link to="/" className="flex items-center gap-3 mb-4">
               <img 
                 src={cyberellumLogo} 
-                alt="Cyberellum Technologies" 
+                alt="Cyberellum Technologies and Laboratory" 
                 className="w-10 h-10 object-contain"
               />
               <div className="flex flex-col">
-                <span className="text-xs text-muted-foreground font-mono">CYBERELLUM</span>
-                <span className="font-semibold text-foreground text-sm">Technologies</span>
+                <span className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider">CYBERELLUM</span>
+                <span className="font-semibold text-foreground text-sm">Technologies and Laboratory</span>
               </div>
             </Link>
             <p className="text-sm text-muted-foreground mb-4">
-              Advanced genomics research platform powered by AI and federated data networks.
+              Advanced genomics research platform powered by multi-AI synthesis with LLM, multimodal ML, GAN, and federated research networks.
             </p>
             <div className="flex gap-3">
               <a href="#" className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-muted-foreground hover:text-foreground transition-colors">

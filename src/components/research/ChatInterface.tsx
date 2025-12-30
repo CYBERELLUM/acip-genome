@@ -221,7 +221,7 @@ export const ChatInterface = () => {
               </div>
               <div className="bg-secondary border border-border p-4 rounded-xl">
                 <p className="text-sm text-muted-foreground">
-                  Processing query across AI providers…
+                  Processing with multi-AI synthesis…
                 </p>
               </div>
             </div>
