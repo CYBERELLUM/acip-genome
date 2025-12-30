@@ -1,19 +1,25 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Mail, Lock, User, Loader2, ArrowRight, Dna } from "lucide-react";
+import { Mail, Lock, User, Loader2, ArrowRight, Dna, CheckCircle, Shield } from "lucide-react";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { MFASetup } from "@/components/auth/MFASetup";
 import { toast } from "sonner";
 import { z } from "zod";
 
 const emailSchema = z.string().email("Please enter a valid email address");
-const passwordSchema = z.string().min(8, "Password must be at least 8 characters");
+const passwordSchema = z.string()
+  .min(12, "Password must be at least 12 characters")
+  .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+  .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+  .regex(/[0-9]/, "Password must contain at least one number")
+  .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character");
 
 const Auth = () => {
   const navigate = useNavigate();
   const { user, loading, signIn, signUp } = useAuthContext();
   const [isLogin, setIsLogin] = useState(true);
   const [showMFASetup, setShowMFASetup] = useState(false);
+  const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
   
   const [email, setEmail] = useState("");
@@ -79,8 +85,9 @@ const Auth = () => {
             toast.error(error.message);
           }
         } else if (data.user) {
-          toast.success("Account created! You can now set up 2FA.");
-          setShowMFASetup(true);
+          // Email confirmation is required - show confirmation screen
+          setShowEmailConfirmation(true);
+          toast.success("Please check your email to verify your account");
         }
       }
     } catch (err) {
@@ -94,6 +101,71 @@ const Auth = () => {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (showEmailConfirmation) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        {/* Background Effects */}
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/4 -left-32 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
+        </div>
+        
+        <div className="glass-panel glow-border p-8 max-w-md w-full relative z-10 text-center">
+          <div className="flex items-center justify-center mb-6">
+            <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center">
+              <Mail className="w-8 h-8 text-primary" />
+            </div>
+          </div>
+          
+          <h1 className="text-2xl font-bold text-foreground mb-4">Verify Your Email</h1>
+          
+          <p className="text-muted-foreground mb-6">
+            We've sent a verification link to <span className="text-foreground font-medium">{email}</span>. 
+            Please check your inbox and click the link to activate your account.
+          </p>
+          
+          <div className="p-4 bg-secondary/50 rounded-lg mb-6">
+            <div className="flex items-center gap-3 text-left">
+              <Shield className="w-5 h-5 text-primary flex-shrink-0" />
+              <p className="text-xs text-muted-foreground">
+                This verification step protects our research platform from unauthorized access and ensures the integrity of our intellectual property.
+              </p>
+            </div>
+          </div>
+          
+          <div className="space-y-3">
+            <p className="text-xs text-muted-foreground">
+              Didn't receive the email? Check your spam folder or
+            </p>
+            <button
+              onClick={() => {
+                setShowEmailConfirmation(false);
+                setEmail("");
+                setPassword("");
+                setDisplayName("");
+              }}
+              className="text-primary hover:underline text-sm font-medium"
+            >
+              Try a different email address
+            </button>
+          </div>
+          
+          <div className="mt-6 pt-6 border-t border-border">
+            <button
+              onClick={() => {
+                setShowEmailConfirmation(false);
+                setIsLogin(true);
+              }}
+              className="text-muted-foreground hover:text-foreground text-sm"
+            >
+              Already verified? Sign in here
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -221,10 +293,17 @@ const Auth = () => {
         </div>
 
         {/* Info */}
-        <div className="mt-6 p-4 bg-secondary/50 rounded-lg">
+        <div className="mt-6 p-4 bg-secondary/50 rounded-lg space-y-2">
           <p className="text-xs text-muted-foreground text-center">
             🔐 Optional 2FA with Google Authenticator available after signup
           </p>
+          {!isLogin && (
+            <div className="pt-2 border-t border-border/50">
+              <p className="text-xs text-muted-foreground">
+                <span className="font-medium text-foreground">Password requirements:</span> 12+ chars, uppercase, lowercase, number, special character
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>
