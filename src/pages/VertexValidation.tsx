@@ -73,9 +73,9 @@ const VertexValidation = () => {
               { metric_type: 'knowledge_entries', value: labNotes?.length || 0 }
             ],
             api_logs: [
-              { provider: 'lovable-ai', status: 200, latency: 1200 },
+              { provider: 'primary-ai', status: 200, latency: 1200 },
               { provider: 'ncbi', status: 200, latency: 450 },
-              { provider: 'supabase', status: 200, latency: 80 }
+              { provider: 'database', status: 200, latency: 80 }
             ],
             sync_logs: [
               { target: 'federated-core', status: 'success', records: 22 },

@@ -194,31 +194,31 @@ const APISettings = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div className="p-3 bg-background/50 rounded-lg border border-border">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-medium">Lovable AI Gateway</span>
-                        <span className="px-2 py-0.5 text-xs bg-green-500/20 text-green-400 rounded">PRIMARY</span>
+                        <span className="text-sm font-medium">Primary AI Gateway</span>
+                        <span className="px-2 py-0.5 text-xs bg-green-500/20 text-green-400 rounded">ACTIVE</span>
                       </div>
-                      <p className="text-xs text-muted-foreground">google/gemini-2.5-flash</p>
+                      <p className="text-xs text-muted-foreground">Multi-model synthesis engine</p>
                     </div>
                     <div className="p-3 bg-background/50 rounded-lg border border-border">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-medium">OpenAI</span>
-                        <span className="px-2 py-0.5 text-xs bg-blue-500/20 text-blue-400 rounded">FALLBACK</span>
+                        <span className="text-sm font-medium">Secondary Provider</span>
+                        <span className="px-2 py-0.5 text-xs bg-blue-500/20 text-blue-400 rounded">STANDBY</span>
                       </div>
-                      <p className="text-xs text-muted-foreground">gpt-4o-mini (when user keys configured)</p>
+                      <p className="text-xs text-muted-foreground">Fallback when user keys configured</p>
                     </div>
                     <div className="p-3 bg-background/50 rounded-lg border border-border">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-medium">Google Gemini</span>
+                        <span className="text-sm font-medium">Tertiary Provider</span>
                         <span className="px-2 py-0.5 text-xs bg-purple-500/20 text-purple-400 rounded">OPTIONAL</span>
                       </div>
-                      <p className="text-xs text-muted-foreground">gemini-1.5-flash (when user keys configured)</p>
+                      <p className="text-xs text-muted-foreground">Additional capacity when configured</p>
                     </div>
                     <div className="p-3 bg-background/50 rounded-lg border border-border">
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-sm font-medium">Federated Core</span>
                         <span className="px-2 py-0.5 text-xs bg-cyan-500/20 text-cyan-400 rounded">KNOWLEDGE</span>
                       </div>
-                      <p className="text-xs text-muted-foreground">yokxmlatktvxqymxtktn (25-year research data)</p>
+                      <p className="text-xs text-muted-foreground">25-year longitudinal research data</p>
                     </div>
                   </div>
                 </div>
