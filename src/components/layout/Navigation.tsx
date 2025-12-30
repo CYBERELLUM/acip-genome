@@ -74,7 +74,7 @@ export const Navigation = () => {
                   <Link to="/dashboard" onClick={() => setIsOpen(false)} className="flex items-center gap-3">
                     <div className="flex flex-col">
                       <span className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider">CYBERELLUM</span>
-                      <span className="font-semibold text-foreground text-sm glow-text">Technologies</span>
+                      <span className="font-semibold text-foreground text-sm glow-text">Technologies and Laboratory</span>
                     </div>
                   </Link>
                 </div>
