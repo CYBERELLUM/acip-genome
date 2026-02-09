@@ -98,6 +98,177 @@ export type Database = {
         }
         Relationships: []
       }
+      federation_audit_log: {
+        Row: {
+          action: string
+          confidence_score: number | null
+          created_at: string | null
+          error_message: string | null
+          fabrication_detected: boolean | null
+          fabrication_patterns: Json | null
+          id: string
+          metadata: Json | null
+          payload_hash: string | null
+          payload_preview: string | null
+          priority_violations: Json | null
+          processing_time_ms: number | null
+          recommendation: string | null
+          response_status: number | null
+          source_node: string
+          validation_passed: boolean | null
+        }
+        Insert: {
+          action: string
+          confidence_score?: number | null
+          created_at?: string | null
+          error_message?: string | null
+          fabrication_detected?: boolean | null
+          fabrication_patterns?: Json | null
+          id?: string
+          metadata?: Json | null
+          payload_hash?: string | null
+          payload_preview?: string | null
+          priority_violations?: Json | null
+          processing_time_ms?: number | null
+          recommendation?: string | null
+          response_status?: number | null
+          source_node: string
+          validation_passed?: boolean | null
+        }
+        Update: {
+          action?: string
+          confidence_score?: number | null
+          created_at?: string | null
+          error_message?: string | null
+          fabrication_detected?: boolean | null
+          fabrication_patterns?: Json | null
+          id?: string
+          metadata?: Json | null
+          payload_hash?: string | null
+          payload_preview?: string | null
+          priority_violations?: Json | null
+          processing_time_ms?: number | null
+          recommendation?: string | null
+          response_status?: number | null
+          source_node?: string
+          validation_passed?: boolean | null
+        }
+        Relationships: []
+      }
+      federation_doctrines: {
+        Row: {
+          content: Json
+          doctrine_type: string | null
+          id: string
+          metadata: Json | null
+          processed_at: string | null
+          received_at: string | null
+          source_node: string
+          status: string | null
+          title: string | null
+          version: string | null
+        }
+        Insert: {
+          content: Json
+          doctrine_type?: string | null
+          id?: string
+          metadata?: Json | null
+          processed_at?: string | null
+          received_at?: string | null
+          source_node: string
+          status?: string | null
+          title?: string | null
+          version?: string | null
+        }
+        Update: {
+          content?: Json
+          doctrine_type?: string | null
+          id?: string
+          metadata?: Json | null
+          processed_at?: string | null
+          received_at?: string | null
+          source_node?: string
+          status?: string | null
+          title?: string | null
+          version?: string | null
+        }
+        Relationships: []
+      }
+      federation_nodes: {
+        Row: {
+          capabilities: Json | null
+          created_at: string | null
+          endpoint_url: string | null
+          federation_version: string | null
+          id: string
+          interconnect_allowed: boolean | null
+          ipc_enabled: boolean | null
+          ipc_failure_count: number | null
+          last_heartbeat: string | null
+          last_ipc_success: string | null
+          link_direction: string | null
+          max_data_classification: string | null
+          metadata: Json | null
+          node_id: string
+          node_name: string
+          node_type: string | null
+          parent_node_id: string | null
+          project_id: string | null
+          public_key: string | null
+          status: string | null
+          tier: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          capabilities?: Json | null
+          created_at?: string | null
+          endpoint_url?: string | null
+          federation_version?: string | null
+          id?: string
+          interconnect_allowed?: boolean | null
+          ipc_enabled?: boolean | null
+          ipc_failure_count?: number | null
+          last_heartbeat?: string | null
+          last_ipc_success?: string | null
+          link_direction?: string | null
+          max_data_classification?: string | null
+          metadata?: Json | null
+          node_id: string
+          node_name: string
+          node_type?: string | null
+          parent_node_id?: string | null
+          project_id?: string | null
+          public_key?: string | null
+          status?: string | null
+          tier?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          capabilities?: Json | null
+          created_at?: string | null
+          endpoint_url?: string | null
+          federation_version?: string | null
+          id?: string
+          interconnect_allowed?: boolean | null
+          ipc_enabled?: boolean | null
+          ipc_failure_count?: number | null
+          last_heartbeat?: string | null
+          last_ipc_success?: string | null
+          link_direction?: string | null
+          max_data_classification?: string | null
+          metadata?: Json | null
+          node_id?: string
+          node_name?: string
+          node_type?: string | null
+          parent_node_id?: string | null
+          project_id?: string | null
+          public_key?: string | null
+          status?: string | null
+          tier?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       federation_sync_history: {
         Row: {
           completed_at: string | null
@@ -134,6 +305,84 @@ export type Database = {
           records_synced?: number | null
           started_at?: string
           status?: string
+        }
+        Relationships: []
+      }
+      governance_hydration_log: {
+        Row: {
+          completed_at: string | null
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          node_id: string
+          phase: number | null
+          phase_name: string | null
+          quality_score: number | null
+          started_at: string | null
+          status: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          node_id: string
+          phase?: number | null
+          phase_name?: string | null
+          quality_score?: number | null
+          started_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          node_id?: string
+          phase?: number | null
+          phase_name?: string | null
+          quality_score?: number | null
+          started_at?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
+      grls_memory: {
+        Row: {
+          created_at: string | null
+          domain: string | null
+          id: string
+          is_active: boolean | null
+          memory_key: string
+          memory_type: string | null
+          memory_value: Json | null
+          signal_strength: number | null
+          summary: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          domain?: string | null
+          id?: string
+          is_active?: boolean | null
+          memory_key: string
+          memory_type?: string | null
+          memory_value?: Json | null
+          signal_strength?: number | null
+          summary?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          domain?: string | null
+          id?: string
+          is_active?: boolean | null
+          memory_key?: string
+          memory_type?: string | null
+          memory_value?: Json | null
+          signal_strength?: number | null
+          summary?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
