@@ -17,10 +17,10 @@ const Landing = () => {
             <span className="text-lg font-bold text-foreground">Cyberellum Genomics</span>
           </div>
           <Link
-            to="/auth"
+            to="/dashboard"
             className="btn-primary flex items-center gap-2 px-6 py-2"
           >
-            Sign In
+            Enter Platform
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
