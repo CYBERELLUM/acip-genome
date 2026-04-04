@@ -19,9 +19,7 @@ const Index = () => {
     );
   }
 
-  if (!user) {
-    return <Navigate to="/auth" replace />;
-  }
+  // Auth gate temporarily disabled for open access
   return (
     <div className="min-h-screen bg-background relative flex flex-col">
       <DNAMatrix />

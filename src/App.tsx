@@ -36,7 +36,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/dashboard" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
+            {/* Auth route temporarily disabled */}
             <Route path="/security" element={<Security />} />
             <Route path="/api-settings" element={<APISettings />} />
             <Route path="/settings" element={<Settings />} />

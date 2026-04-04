@@ -17,10 +17,10 @@ const Landing = () => {
             <span className="text-lg font-bold text-foreground">Cyberellum Genomics</span>
           </div>
           <Link
-            to="/auth"
+            to="/dashboard"
             className="btn-primary flex items-center gap-2 px-6 py-2"
           >
-            Sign In
+            Enter Platform
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
@@ -52,7 +52,7 @@ const Landing = () => {
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
               <Link
-                to="/auth"
+                to="/dashboard"
                 className="btn-primary flex items-center gap-2 px-8 py-3 text-lg"
               >
                 Get Started
@@ -152,10 +152,10 @@ const Landing = () => {
               Sign in to access the full suite of genomics research tools and AI-powered analysis.
             </p>
             <Link
-              to="/auth"
+              to="/dashboard"
               className="btn-primary inline-flex items-center gap-2 px-8 py-3 text-lg"
             >
-              Sign In to Access
+              Access Platform
               <ArrowRight className="w-5 h-5" />
             </Link>
           </div>

@@ -27,12 +27,7 @@ const APISettings = () => {
 
   const isAdmin = user?.email && ADMIN_EMAILS.includes(user.email.toLowerCase());
 
-  // Redirect to auth if not logged in
-  useEffect(() => {
-    if (!authLoading && !user) {
-      navigate("/auth");
-    }
-  }, [user, authLoading, navigate]);
+  // Auth gate temporarily disabled for open access
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
