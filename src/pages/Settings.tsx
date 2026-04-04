@@ -414,30 +414,7 @@ const Settings = () => {
     );
   }
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-background flex flex-col">
-        <Navigation />
-        <div className="flex-1 flex items-center justify-center">
-          <Card className="max-w-md w-full mx-4">
-            <CardHeader className="text-center">
-              <LogIn className="w-12 h-12 text-primary mx-auto mb-4" />
-              <CardTitle>Sign In Required</CardTitle>
-              <CardDescription>
-                Please sign in to access your settings.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex justify-center">
-              <Link to="/auth">
-                <Button>Sign In</Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
-        <Footer />
-      </div>
-    );
-  }
+  // Auth gate temporarily disabled for open access
 
   return (
     <div className="min-h-screen bg-background flex flex-col">

@@ -152,10 +152,10 @@ const Landing = () => {
               Sign in to access the full suite of genomics research tools and AI-powered analysis.
             </p>
             <Link
-              to="/auth"
+              to="/dashboard"
               className="btn-primary inline-flex items-center gap-2 px-8 py-3 text-lg"
             >
-              Sign In to Access
+              Access Platform
               <ArrowRight className="w-5 h-5" />
             </Link>
           </div>

@@ -108,11 +108,7 @@ const Security = () => {
   const [newIPLabel, setNewIPLabel] = useState("");
   const [showAddIP, setShowAddIP] = useState(false);
 
-  useEffect(() => {
-    if (!loading && !user) {
-      navigate("/auth");
-    }
-  }, [user, loading, navigate]);
+  // Auth gate temporarily disabled for open access
 
   useEffect(() => {
     if (user) {
