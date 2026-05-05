@@ -25,6 +25,7 @@ import Collaborate from "./pages/Collaborate";
 import APISettings from "./pages/APISettings";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import PatientIntake from "./pages/PatientIntake";
 import ScrollToTop from "./components/ScrollToTop";
 import { MissionWizard } from "./components/wizard/MissionWizard";
 
@@ -62,6 +63,7 @@ const App = () => (
             <Route path="/about" element={<About />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
+            <Route path="/patient-intake" element={<PatientIntake />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

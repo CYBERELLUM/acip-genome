@@ -538,6 +538,99 @@ export type Database = {
         }
         Relationships: []
       }
+      patient_intake: {
+        Row: {
+          additional_notes: string | null
+          alcohol_use: string | null
+          allergies: string | null
+          areas_of_concern: string[] | null
+          biological_sex: string | null
+          completed: boolean
+          completed_at: string | null
+          consent_data_sharing: boolean
+          consent_research: boolean
+          created_at: string
+          current_conditions: string | null
+          date_of_birth: string | null
+          diet_pattern: string | null
+          ethnicity: string | null
+          exercise_frequency: string | null
+          family_history: string | null
+          full_name: string | null
+          id: string
+          known_variants: string | null
+          medications: string | null
+          past_surgeries: string | null
+          primary_goals: string[] | null
+          prior_genetic_tests: string | null
+          sleep_hours: number | null
+          smoking_status: string | null
+          stress_level: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          additional_notes?: string | null
+          alcohol_use?: string | null
+          allergies?: string | null
+          areas_of_concern?: string[] | null
+          biological_sex?: string | null
+          completed?: boolean
+          completed_at?: string | null
+          consent_data_sharing?: boolean
+          consent_research?: boolean
+          created_at?: string
+          current_conditions?: string | null
+          date_of_birth?: string | null
+          diet_pattern?: string | null
+          ethnicity?: string | null
+          exercise_frequency?: string | null
+          family_history?: string | null
+          full_name?: string | null
+          id?: string
+          known_variants?: string | null
+          medications?: string | null
+          past_surgeries?: string | null
+          primary_goals?: string[] | null
+          prior_genetic_tests?: string | null
+          sleep_hours?: number | null
+          smoking_status?: string | null
+          stress_level?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          additional_notes?: string | null
+          alcohol_use?: string | null
+          allergies?: string | null
+          areas_of_concern?: string[] | null
+          biological_sex?: string | null
+          completed?: boolean
+          completed_at?: string | null
+          consent_data_sharing?: boolean
+          consent_research?: boolean
+          created_at?: string
+          current_conditions?: string | null
+          date_of_birth?: string | null
+          diet_pattern?: string | null
+          ethnicity?: string | null
+          exercise_frequency?: string | null
+          family_history?: string | null
+          full_name?: string | null
+          id?: string
+          known_variants?: string | null
+          medications?: string | null
+          past_surgeries?: string | null
+          primary_goals?: string[] | null
+          prior_genetic_tests?: string | null
+          sleep_hours?: number | null
+          smoking_status?: string | null
+          stress_level?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string

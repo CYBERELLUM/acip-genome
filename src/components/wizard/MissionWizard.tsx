@@ -19,6 +19,8 @@ import {
   Loader2,
 } from "lucide-react";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { HeartPulse } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -127,6 +129,22 @@ export const MissionWizard = () => {
   const [selected, setSelected] = useState<Mission | null>(null);
   const [customPrompt, setCustomPrompt] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [isPatient, setIsPatient] = useState(false);
+  const [intakeComplete, setIntakeComplete] = useState(false);
+
+  // Detect patient role + intake status whenever user resolves
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const [{ data: roles }, { data: intake }] = await Promise.all([
+        supabase.from("user_roles").select("role").eq("user_id", user.id),
+        supabase.from("patient_intake").select("completed").eq("user_id", user.id).maybeSingle(),
+      ]);
+      const patient = !!roles?.some((r: any) => r.role === "patient");
+      setIsPatient(patient);
+      setIntakeComplete(!!intake?.completed);
+    })();
+  }, [user]);
 
   // Open once per session, after auth resolves and a user is present
   useEffect(() => {
@@ -209,6 +227,52 @@ export const MissionWizard = () => {
             What is your mission today? Pick a starting point and I'll prepare the workspace.
           </DialogDescription>
         </DialogHeader>
+
+        {isPatient && !intakeComplete && (
+          <div className="mt-2 p-4 rounded-xl border border-primary/40 bg-primary/5">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-primary/20 text-primary">
+                <HeartPulse className="w-5 h-5" />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold text-foreground">Complete your patient intake</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Before the platform can calibrate research to your biology, fill out the intake questionnaire.
+                  You can save your draft and export a PDF copy.
+                </p>
+              </div>
+              <Button
+                size="sm"
+                onClick={() => {
+                  closeAndRemember();
+                  navigate("/patient-intake");
+                }}
+                className="gap-1"
+              >
+                Start intake <ArrowRight className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {isPatient && intakeComplete && (
+          <div className="mt-2 p-3 rounded-lg border border-border bg-secondary/30 flex items-center justify-between gap-3">
+            <p className="text-xs text-muted-foreground flex items-center gap-2">
+              <HeartPulse className="w-4 h-4 text-primary" />
+              Your intake is complete — research is calibrated to your profile.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                closeAndRemember();
+                navigate("/patient-intake");
+              }}
+              className="text-xs text-primary hover:underline"
+            >
+              Update intake
+            </button>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-2">
           {MISSIONS.map((m) => {
