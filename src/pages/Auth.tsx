@@ -101,8 +101,10 @@ const Auth = () => {
           }
         } else if (data.user) {
           setShowEmailConfirmation(true);
-          if (requestedRole !== "user") {
-            toast.success(`Verify your email. ${requestedRole === "admin" ? "Admin" : "Developer"} access requires approval from ceo@cyberellum.technology.`);
+          const needsApproval = ["admin", "developer", "practitioner"].includes(requestedRole);
+          if (needsApproval) {
+            const label = requestedRole.charAt(0).toUpperCase() + requestedRole.slice(1);
+            toast.success(`Verify your email. ${label} access requires approval from ceo@cyberellum.technology.`);
           } else {
             toast.success("Please check your email to verify your account");
           }
