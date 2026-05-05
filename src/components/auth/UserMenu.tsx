@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { User, LogOut, Shield, Settings, ChevronDown } from "lucide-react";
+import { User, LogOut, Shield, Settings, ChevronDown, LogIn } from "lucide-react";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
@@ -20,7 +20,23 @@ export const UserMenu = () => {
   };
 
   if (!user) {
-    return null;
+    return (
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => navigate("/auth")}
+          className="px-3 py-2 rounded-lg text-sm text-foreground hover:bg-secondary/50 transition-colors flex items-center gap-2"
+        >
+          <LogIn className="w-4 h-4" />
+          <span className="hidden sm:inline">Sign In</span>
+        </button>
+        <button
+          onClick={() => navigate("/auth")}
+          className="px-3 py-2 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+        >
+          Sign Up
+        </button>
+      </div>
+    );
   }
 
   return (
