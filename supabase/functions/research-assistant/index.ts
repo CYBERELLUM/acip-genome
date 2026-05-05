@@ -441,23 +441,43 @@ serve(async (req) => {
 
     console.log("[Research] Processing query with messages:", messages.length, "mode:", researchMode);
 
-    // AUTONOMOUS: Query Federated Core for knowledge - no human intervention
-    console.log("[Research] Autonomously querying Federated Core for knowledge exchange...");
-    const federatedKnowledge = await queryFederatedCore();
-    
-    // Build context from federated knowledge
+    // AUTONOMOUS: Query Federated Core + live Web Search in parallel
+    console.log("[Research] Querying Federated Core + live web search...");
     const lastUserMessage = messages[messages.length - 1]?.content || "";
+    const [federatedKnowledge, webSearch] = await Promise.all([
+      queryFederatedCore(),
+      queryWebSearch(lastUserMessage),
+    ]);
+
+    // Build context from federated knowledge
     const federatedContext = buildFederatedContext(federatedKnowledge, lastUserMessage);
-    
+
+    // Build live web-search context block (recent citations)
+    let webContext = "";
+    if (webSearch.available) {
+      webContext = `\n\n---\n**[LIVE WEB SEARCH — recent literature & sources]**\n\n${webSearch.content}`;
+      if (webSearch.citations.length > 0) {
+        webContext += `\n\n**Citations:**\n${webSearch.citations.map((u, i) => `${i + 1}. ${u}`).join("\n")}`;
+      }
+    }
+
     // Enhance system prompt with federated knowledge context
-    const systemPrompt = getSystemPrompt(researchMode, federatedContext);
-    
-    // Inject federated context into messages if available
-    const enhancedMessages = federatedContext 
-      ? [...messages.slice(0, -1), { 
-          role: "user", 
-          content: `${lastUserMessage}\n\n[Context from Federated Research Network:${federatedContext}]` 
-        }]
+    const systemPrompt = getSystemPrompt(researchMode, federatedContext) +
+      (webSearch.available
+        ? `\n\n# LIVE WEB CITATIONS\nYou have been provided with a real-time web-search briefing of recent peer-reviewed sources, preprints, and authoritative databases (see context block). USE these as primary citations when they are relevant. If the literature is thin or behind paywalls, explicitly recommend that the user add an API key (e.g., PubMed/NCBI E-utilities, Semantic Scholar, Crossref, UK Biobank, ClinicalTrials.gov) or join a specific consortium/database to obtain the missing data. Never fabricate URLs — only cite the ones provided or known canonical resources.`
+        : "")
+;
+
+    // Inject federated + web context into the last user message
+    const combinedContext = `${federatedContext}${webContext}`;
+    const enhancedMessages = combinedContext
+      ? [
+          ...messages.slice(0, -1),
+          {
+            role: "user",
+            content: `${lastUserMessage}\n\n[Research context:${combinedContext}]`,
+          },
+        ]
       : messages;
 
     // Get user's configured API keys
@@ -486,7 +506,6 @@ serve(async (req) => {
     const queries: Promise<AIResponse>[] = [];
     const activeProviders: string[] = [];
 
-    // Always include primary AI as the main provider
     queries.push(queryPrimaryGateway(enhancedMessages, MULTI_AI_KEY, systemPrompt));
     activeProviders.push("Primary");
 
@@ -500,9 +519,11 @@ serve(async (req) => {
       activeProviders.push("Gemini");
     }
 
-    // Add Federated Core as a source if it contributed knowledge
     if (federatedKnowledge.available) {
       activeProviders.push(`Federated Core (${federatedKnowledge.nodeId})`);
+    }
+    if (webSearch.available) {
+      activeProviders.push("Live Web Search");
     }
 
     console.log("[Research] Querying providers:", activeProviders);
@@ -520,23 +541,30 @@ serve(async (req) => {
       return { provider: activeProviders[i], content: "", success: false, error: "Timeout or error" };
     });
 
-    const synthesizedContent = synthesizeResponses(responses, lastUserMessage, federatedKnowledge);
-    
-    // Return generic source count without exposing provider names to users
+    let synthesizedContent = synthesizeResponses(responses, lastUserMessage, federatedKnowledge);
+
+    // Append live web citations as a dedicated, visible section
+    if (webSearch.available && webSearch.citations.length > 0) {
+      synthesizedContent += `\n\n---\n### 🌐 Live Web Citations (recent sources)\n${webSearch.citations
+        .slice(0, 8)
+        .map((u, i) => `${i + 1}. ${u}`)
+        .join("\n")}`;
+    }
+
     const sourceCount = responses.filter(r => r.success).length;
     const sources = [`${sourceCount} AI sources`];
-    
-    // Include Federated Core in sources if it contributed
-    if (federatedKnowledge.available) {
-      sources.push("Federated Core");
-    }
+    if (federatedKnowledge.available) sources.push("Federated Core");
+    if (webSearch.available) sources.push("Live Web Search");
 
     return new Response(
       JSON.stringify({
         content: synthesizedContent,
-        sources: sources,
-        providersQueried: sourceCount, // Just count, not names
+        sources,
+        providersQueried: sourceCount,
         federatedNode: federatedKnowledge.available ? "connected" : null,
+        webSearch: webSearch.available
+          ? { citationCount: webSearch.citations.length, citations: webSearch.citations }
+          : null,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
