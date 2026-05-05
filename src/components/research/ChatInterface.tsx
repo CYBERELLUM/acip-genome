@@ -7,6 +7,9 @@ import {
   MicOff,
   Download,
   Trash2,
+  Paperclip,
+  FileText,
+  X,
 } from "lucide-react";
 import { useResearchChat } from "@/hooks/useResearchChat";
 import { toast } from "sonner";
@@ -14,6 +17,12 @@ import { ChatMessage } from "./ChatMessage";
 import { SourcesSheet } from "./SourcesSheet";
 import { QuickPrompts } from "./QuickPrompts";
 import { ResearchModeSelector } from "./ResearchModeSelector";
+import {
+  parseFile,
+  buildContextBlock,
+  ACCEPT_ATTR,
+  type ParsedFile,
+} from "@/lib/fileParser";
 import jsPDF from "jspdf";
 
 // Type declarations for Web Speech API
