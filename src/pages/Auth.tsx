@@ -92,7 +92,7 @@ const Auth = () => {
           navigate("/dashboard");
         }
       } else {
-        const { data, error } = await signUp(email, password, displayName);
+        const { data, error } = await signUp(email, password, displayName, requestedRole);
         if (error) {
           if (error.message.includes("User already registered")) {
             toast.error("An account with this email already exists");
@@ -100,9 +100,12 @@ const Auth = () => {
             toast.error(error.message);
           }
         } else if (data.user) {
-          // Email confirmation is required - show confirmation screen
           setShowEmailConfirmation(true);
-          toast.success("Please check your email to verify your account");
+          if (requestedRole !== "user") {
+            toast.success(`Verify your email. ${requestedRole === "admin" ? "Admin" : "Developer"} access requires approval from ceo@cyberellum.technology.`);
+          } else {
+            toast.success("Please check your email to verify your account");
+          }
         }
       }
     } catch (err) {
