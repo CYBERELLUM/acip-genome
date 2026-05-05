@@ -271,8 +271,52 @@ export const ChatInterface = () => {
         </div>
 
         {/* Input */}
-        <form onSubmit={handleSubmit} className="p-4 border-t border-border">
+        <form onSubmit={handleSubmit} className="p-4 border-t border-border space-y-2">
+          {attachments.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {attachments.map((f, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-2 px-2 py-1 rounded-md bg-secondary border border-border text-xs"
+                >
+                  <FileText className="w-3.5 h-3.5 text-primary" />
+                  <span className="max-w-[180px] truncate">{f.filename}</span>
+                  {f.truncated && <span className="text-muted-foreground">(truncated)</span>}
+                  <button
+                    type="button"
+                    onClick={() => removeAttachment(i)}
+                    className="text-muted-foreground hover:text-destructive"
+                    aria-label="Remove attachment"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
           <div className="flex gap-3">
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept={ACCEPT_ATTR}
+              onChange={handleFilesSelected}
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isLoading || parsingFiles}
+              className="p-3 rounded-lg bg-secondary hover:bg-secondary/80 text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Attach files"
+              title="Attach PDF, Word, Excel, CSV, or text files"
+            >
+              {parsingFiles ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <Paperclip className="w-5 h-5" />
+              )}
+            </button>
             <button
               type="button"
               onClick={toggleVoiceInput}
@@ -293,13 +337,17 @@ export const ChatInterface = () => {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Enter your research query..."
+              placeholder={
+                attachments.length
+                  ? "Ask about the attached document(s)..."
+                  : "Enter your research query..."
+              }
               className="flex-1 input-scientific"
               disabled={isLoading}
             />
             <button
               type="submit"
-              disabled={isLoading || !input.trim()}
+              disabled={isLoading || (!input.trim() && attachments.length === 0)}
               className="btn-primary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Send className="w-4 h-4" />
