@@ -201,6 +201,62 @@ interface AIResponse {
   error?: string;
 }
 
+interface WebSearchResult {
+  available: boolean;
+  content: string;
+  citations: string[];
+  error?: string;
+}
+
+// Live web search via Perplexity sonar-pro for recent citations,
+// medical journals, preprints, and news beyond the model's training cutoff.
+async function queryWebSearch(query: string): Promise<WebSearchResult> {
+  const PERPLEXITY_API_KEY = Deno.env.get("PERPLEXITY_API_KEY");
+  if (!PERPLEXITY_API_KEY) {
+    return { available: false, content: "", citations: [], error: "PERPLEXITY_API_KEY not configured" };
+  }
+
+  try {
+    const response = await fetch("https://api.perplexity.ai/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${PERPLEXITY_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "sonar-pro",
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are a biomedical literature retrieval agent. For the user's query, surface the most recent, highest-quality primary sources: peer-reviewed journals (Nature, Cell, NEJM, Lancet, Genome Research, Bioinformatics), reputable preprints (bioRxiv, medRxiv), authoritative databases (PubMed, NCBI, ClinVar, gnomAD, Ensembl, UniProt, WHO, CDC, NIH). Return a tight synthesis (≤300 words) of what the recent literature actually says, then a numbered list of the 5–8 most relevant sources with title, venue, year, and URL. If the topic requires access to a paywalled database or specialized API (e.g., UK Biobank, dbGaP, Clarivate, Cochrane), explicitly recommend the user obtain credentials or add that API.",
+          },
+          { role: "user", content: query },
+        ],
+        temperature: 0.2,
+        max_tokens: 1200,
+        search_recency_filter: "year",
+        return_citations: true,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      console.error("[WebSearch] Perplexity error:", error);
+      return { available: false, content: "", citations: [], error };
+    }
+
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content || "";
+    const citations: string[] = data.citations || data.search_results?.map((r: any) => r.url) || [];
+    console.log("[WebSearch] Retrieved", citations.length, "citations");
+    return { available: !!content, content, citations };
+  } catch (error) {
+    console.error("[WebSearch] Exception:", error);
+    return { available: false, content: "", citations: [], error: String(error) };
+  }
+}
+
 async function queryOpenAI(messages: any[], apiKey: string, systemPrompt: string): Promise<AIResponse> {
   try {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
