@@ -28,6 +28,7 @@ import NotFound from "./pages/NotFound";
 import PatientIntake from "./pages/PatientIntake";
 import ScrollToTop from "./components/ScrollToTop";
 import { MissionWizard } from "./components/wizard/MissionWizard";
+import { FeatureSuggestionButton } from "./components/FeatureSuggestionButton";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,7 @@ const App = () => (
         <AuthProvider>
           <ScrollToTop />
           <MissionWizard />
+          <FeatureSuggestionButton />
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/auth" element={<Auth />} />
