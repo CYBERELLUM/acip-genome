@@ -63,6 +63,7 @@ const App = () => (
             <Route path="/about" element={<About />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
+            <Route path="/patient-intake" element={<PatientIntake />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
