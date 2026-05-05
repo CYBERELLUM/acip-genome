@@ -116,11 +116,40 @@ export const ChatInterface = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || isLoading) return;
+    if ((!input.trim() && attachments.length === 0) || isLoading) return;
 
-    const message = input;
+    const contextBlock = buildContextBlock(attachments);
+    const message = (input.trim() || "Please analyze the attached document(s).") + contextBlock;
     setInput("");
+    setAttachments([]);
     await sendMessage(message);
+  };
+
+  const handleFilesSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setParsingFiles(true);
+    try {
+      const parsed: ParsedFile[] = [];
+      for (const file of Array.from(files)) {
+        try {
+          const result = await parseFile(file);
+          parsed.push(result);
+          toast.success(`Parsed ${file.name}`);
+        } catch (err) {
+          console.error("Parse error:", err);
+          toast.error(`${file.name}: ${err instanceof Error ? err.message : "parse failed"}`);
+        }
+      }
+      setAttachments((prev) => [...prev, ...parsed]);
+    } finally {
+      setParsingFiles(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const removeAttachment = (idx: number) => {
+    setAttachments((prev) => prev.filter((_, i) => i !== idx));
   };
 
   const openSources = (sources: string[]) => {
