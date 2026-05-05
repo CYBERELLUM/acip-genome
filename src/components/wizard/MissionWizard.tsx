@@ -19,6 +19,8 @@ import {
   Loader2,
 } from "lucide-react";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { HeartPulse } from "lucide-react";
 import {
   Dialog,
   DialogContent,
