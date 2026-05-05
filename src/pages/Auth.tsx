@@ -25,6 +25,7 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [requestedRole, setRequestedRole] = useState<"user" | "admin" | "developer">("user");
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
   useEffect(() => {
@@ -91,7 +92,7 @@ const Auth = () => {
           navigate("/dashboard");
         }
       } else {
-        const { data, error } = await signUp(email, password, displayName);
+        const { data, error } = await signUp(email, password, displayName, requestedRole);
         if (error) {
           if (error.message.includes("User already registered")) {
             toast.error("An account with this email already exists");
@@ -99,9 +100,12 @@ const Auth = () => {
             toast.error(error.message);
           }
         } else if (data.user) {
-          // Email confirmation is required - show confirmation screen
           setShowEmailConfirmation(true);
-          toast.success("Please check your email to verify your account");
+          if (requestedRole !== "user") {
+            toast.success(`Verify your email. ${requestedRole === "admin" ? "Admin" : "Developer"} access requires approval from ceo@cyberellum.technology.`);
+          } else {
+            toast.success("Please check your email to verify your account");
+          }
         }
       }
     } catch (err) {
@@ -235,6 +239,34 @@ const Auth = () => {
                   className="input-scientific w-full pl-10"
                 />
               </div>
+            </div>
+          )}
+
+          {!isLogin && (
+            <div>
+              <label className="block text-sm text-muted-foreground mb-2">Account Type</label>
+              <div className="grid grid-cols-3 gap-2">
+                {(["user", "developer", "admin"] as const).map((r) => (
+                  <button
+                    type="button"
+                    key={r}
+                    onClick={() => setRequestedRole(r)}
+                    className={`px-3 py-2 rounded-lg text-xs font-medium border transition-colors ${
+                      requestedRole === r
+                        ? "border-primary bg-primary/10 text-foreground"
+                        : "border-border bg-secondary/30 text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {r === "user" ? "User" : r === "developer" ? "Developer" : "Admin"}
+                  </button>
+                ))}
+              </div>
+              {requestedRole !== "user" && (
+                <p className="text-xs text-amber-500 mt-2">
+                  ⚠ {requestedRole === "admin" ? "Admin" : "Developer"} access requires manual approval. Email{" "}
+                  <a href="mailto:ceo@cyberellum.technology" className="underline">ceo@cyberellum.technology</a> for approval.
+                </p>
+              )}
             </div>
           )}
 

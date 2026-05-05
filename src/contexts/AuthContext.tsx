@@ -7,7 +7,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   mfaRequired: boolean;
-  signUp: (email: string, password: string, displayName?: string) => Promise<{ data: any; error: any }>;
+  signUp: (email: string, password: string, displayName?: string, requestedRole?: string) => Promise<{ data: any; error: any }>;
   signIn: (email: string, password: string) => Promise<{ data: any; error: any }>;
   signOut: () => Promise<{ error: any }>;
   enrollMFA: (friendlyName?: string) => Promise<{ data: any; error: any }>;

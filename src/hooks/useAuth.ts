@@ -65,9 +65,9 @@ export const useAuth = () => {
     }
   };
 
-  const signUp = useCallback(async (email: string, password: string, displayName?: string) => {
+  const signUp = useCallback(async (email: string, password: string, displayName?: string, requestedRole?: string) => {
     const redirectUrl = `${window.location.origin}/`;
-    
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -75,6 +75,7 @@ export const useAuth = () => {
         emailRedirectTo: redirectUrl,
         data: {
           display_name: displayName,
+          requested_role: requestedRole || 'user',
         },
       },
     });
