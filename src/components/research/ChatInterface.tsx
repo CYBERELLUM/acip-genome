@@ -7,6 +7,9 @@ import {
   MicOff,
   Download,
   Trash2,
+  Paperclip,
+  FileText,
+  X,
 } from "lucide-react";
 import { useResearchChat } from "@/hooks/useResearchChat";
 import { toast } from "sonner";
@@ -14,6 +17,12 @@ import { ChatMessage } from "./ChatMessage";
 import { SourcesSheet } from "./SourcesSheet";
 import { QuickPrompts } from "./QuickPrompts";
 import { ResearchModeSelector } from "./ResearchModeSelector";
+import {
+  parseFile,
+  buildContextBlock,
+  ACCEPT_ATTR,
+  type ParsedFile,
+} from "@/lib/fileParser";
 import jsPDF from "jspdf";
 
 // Type declarations for Web Speech API
@@ -39,8 +48,11 @@ export const ChatInterface = () => {
   const [isListening, setIsListening] = useState(false);
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const [activeSources, setActiveSources] = useState<string[]>([]);
+  const [attachments, setAttachments] = useState<ParsedFile[]>([]);
+  const [parsingFiles, setParsingFiles] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -104,11 +116,40 @@ export const ChatInterface = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || isLoading) return;
+    if ((!input.trim() && attachments.length === 0) || isLoading) return;
 
-    const message = input;
+    const contextBlock = buildContextBlock(attachments);
+    const message = (input.trim() || "Please analyze the attached document(s).") + contextBlock;
     setInput("");
+    setAttachments([]);
     await sendMessage(message);
+  };
+
+  const handleFilesSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setParsingFiles(true);
+    try {
+      const parsed: ParsedFile[] = [];
+      for (const file of Array.from(files)) {
+        try {
+          const result = await parseFile(file);
+          parsed.push(result);
+          toast.success(`Parsed ${file.name}`);
+        } catch (err) {
+          console.error("Parse error:", err);
+          toast.error(`${file.name}: ${err instanceof Error ? err.message : "parse failed"}`);
+        }
+      }
+      setAttachments((prev) => [...prev, ...parsed]);
+    } finally {
+      setParsingFiles(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const removeAttachment = (idx: number) => {
+    setAttachments((prev) => prev.filter((_, i) => i !== idx));
   };
 
   const openSources = (sources: string[]) => {
@@ -230,8 +271,52 @@ export const ChatInterface = () => {
         </div>
 
         {/* Input */}
-        <form onSubmit={handleSubmit} className="p-4 border-t border-border">
+        <form onSubmit={handleSubmit} className="p-4 border-t border-border space-y-2">
+          {attachments.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {attachments.map((f, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-2 px-2 py-1 rounded-md bg-secondary border border-border text-xs"
+                >
+                  <FileText className="w-3.5 h-3.5 text-primary" />
+                  <span className="max-w-[180px] truncate">{f.filename}</span>
+                  {f.truncated && <span className="text-muted-foreground">(truncated)</span>}
+                  <button
+                    type="button"
+                    onClick={() => removeAttachment(i)}
+                    className="text-muted-foreground hover:text-destructive"
+                    aria-label="Remove attachment"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
           <div className="flex gap-3">
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept={ACCEPT_ATTR}
+              onChange={handleFilesSelected}
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isLoading || parsingFiles}
+              className="p-3 rounded-lg bg-secondary hover:bg-secondary/80 text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Attach files"
+              title="Attach PDF, Word, Excel, CSV, or text files"
+            >
+              {parsingFiles ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <Paperclip className="w-5 h-5" />
+              )}
+            </button>
             <button
               type="button"
               onClick={toggleVoiceInput}
@@ -252,13 +337,17 @@ export const ChatInterface = () => {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Enter your research query..."
+              placeholder={
+                attachments.length
+                  ? "Ask about the attached document(s)..."
+                  : "Enter your research query..."
+              }
               className="flex-1 input-scientific"
               disabled={isLoading}
             />
             <button
               type="submit"
-              disabled={isLoading || !input.trim()}
+              disabled={isLoading || (!input.trim() && attachments.length === 0)}
               className="btn-primary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Send className="w-4 h-4" />
