@@ -63,15 +63,20 @@ export const useResearchChat = () => {
     }));
 
     try {
+      // Use the user's session token when available so the edge function can
+      // derive identity from the JWT instead of trusting a client-supplied userId.
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data: { session } } = await supabase.auth.getSession();
+      const bearer = session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
       const response = await fetch(CHAT_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer ${bearer}`,
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           messages: apiMessages,
-          userId: user?.id,
           mode: currentMode,
         }),
       });
