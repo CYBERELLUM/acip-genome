@@ -242,6 +242,34 @@ const Auth = () => {
             </div>
           )}
 
+          {!isLogin && (
+            <div>
+              <label className="block text-sm text-muted-foreground mb-2">Account Type</label>
+              <div className="grid grid-cols-3 gap-2">
+                {(["user", "developer", "admin"] as const).map((r) => (
+                  <button
+                    type="button"
+                    key={r}
+                    onClick={() => setRequestedRole(r)}
+                    className={`px-3 py-2 rounded-lg text-xs font-medium border transition-colors ${
+                      requestedRole === r
+                        ? "border-primary bg-primary/10 text-foreground"
+                        : "border-border bg-secondary/30 text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {r === "user" ? "User" : r === "developer" ? "Developer" : "Admin"}
+                  </button>
+                ))}
+              </div>
+              {requestedRole !== "user" && (
+                <p className="text-xs text-amber-500 mt-2">
+                  ⚠ {requestedRole === "admin" ? "Admin" : "Developer"} access requires manual approval. Email{" "}
+                  <a href="mailto:ceo@cyberellum.technology" className="underline">ceo@cyberellum.technology</a> for approval.
+                </p>
+              )}
+            </div>
+          )}
+
           <div>
             <label className="block text-sm text-muted-foreground mb-2">Email Address</label>
             <div className="relative">
