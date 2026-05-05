@@ -286,8 +286,12 @@ async function queryPrimaryGateway(messages: any[], apiKey: string, systemPrompt
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        // Upgraded from gemini-2.5-flash → gemini-2.5-pro for deeper scientific reasoning,
+        // longer context, and higher fidelity on multi-step genomics queries.
+        model: "google/gemini-2.5-pro",
         messages: [{ role: "system", content: systemPrompt }, ...messages],
+        temperature: 0.3,
+        max_tokens: 4000,
       }),
     });
 
