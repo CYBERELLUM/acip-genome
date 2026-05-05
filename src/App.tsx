@@ -25,6 +25,7 @@ import Collaborate from "./pages/Collaborate";
 import APISettings from "./pages/APISettings";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import PatientIntake from "./pages/PatientIntake";
 import ScrollToTop from "./components/ScrollToTop";
 import { MissionWizard } from "./components/wizard/MissionWizard";
 
