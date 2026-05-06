@@ -41,6 +41,32 @@ serve(async (req) => {
   }
 
   try {
+    // Require authenticated admin user
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const userClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } },
+    );
+    const { data: userData, error: userErr } = await userClient.auth.getUser();
+    if (userErr || !userData?.user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    // Admin role check
+    const { data: isAdmin } = await userClient.rpc("is_admin", { _user_id: userData.user.id });
+    if (!isAdmin) {
+      return new Response(JSON.stringify({ error: "Forbidden: admin only" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { satellite_id, satellite_name, data_samples, request_full_audit = false }: VerificationRequest = await req.json();
 
     if (!satellite_id || !satellite_name) {
