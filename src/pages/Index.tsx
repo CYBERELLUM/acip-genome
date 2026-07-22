@@ -132,7 +132,7 @@ const Index = () => {
           className="w-full h-auto object-cover"
           style={{ maxHeight: "400px" }}
         >
-          <source src="/videos/dna-animation.mp4" type="video/mp4" />
+          <source src="/videos/dna-blue.mp4" type="video/mp4" />
         </video>
         {/* Gradient overlays for seamless blend */}
         <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background pointer-events-none" />
