@@ -44,8 +44,8 @@ const Landing = () => (
         <a href="#care">Care model</a>
       </nav>
       <div className="cm-nav-actions">
-        <Link to="/auth" className="cm-text-link">Sign in</Link>
-        <Link to="/auth?mode=register" className="cm-button cm-button-small">Create account</Link>
+        <a href="/login" className="cm-text-link">Sign in</a>
+        <a href="/register" className="cm-button cm-button-small">Create account</a>
       </div>
     </header>
 
@@ -65,8 +65,8 @@ const Landing = () => (
             in language you can use, with clinical boundaries you can trust.
           </p>
           <div className="cm-hero-actions">
-            <Link to="/auth?mode=register" className="cm-button">Create my account <ArrowRight size={18} /></Link>
-            <Link to="/auth" className="cm-button cm-button-ghost">Sign in</Link>
+            <a href="/register" className="cm-button">Create my account <ArrowRight size={18} /></a>
+            <a href="/login" className="cm-button cm-button-ghost">Sign in</a>
           </div>
           <div className="cm-trust-row">
             <span><ShieldCheck /> Governed access</span>
@@ -126,7 +126,7 @@ const Landing = () => (
             Cyber-Medi does not diagnose. It helps you understand your information,
             prepare for a professional conversation, and recognize when the next step should be a doctor.
           </p>
-          <Link to="/auth?mode=register" className="cm-button">Begin privately <ArrowRight size={18} /></Link>
+          <a href="/register" className="cm-button">Begin privately <ArrowRight size={18} /></a>
         </div>
       </section>
     </main>
